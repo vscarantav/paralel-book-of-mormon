@@ -6,7 +6,11 @@ import requests
 import os
 import re
 import time
-import json          # NEW: load precomputed names
+import json
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+
 
 # ----------------------------
 # Canonical books & chapters
@@ -81,7 +85,7 @@ def fetch_1ne1_extras(lang: str) -> dict:
     url = f"{base_url}?{urlencode({'lang': lang})}"
     headers = {"User-Agent": "Mozilla/5.0 (compatible; 1ne1-extractor/1.0)"}
 
-    r = requests.get(url, headers=headers, timeout=20)
+    r = _session.get(url, headers=headers, timeout=20)
     r.raise_for_status()
 
     # Parse from BYTES to avoid misguessed encodings
@@ -192,7 +196,7 @@ def _fetch_book_title(slug: str, lang: str) -> str:
     strip leaked 'Chapter 1 ' headings and trailing numbers.
     """
     url = BOOK_TITLE_URL.format(slug=slug, lang=lang)
-    r = requests.get(url, headers=HEADERS, timeout=12)
+    r = _session.get(url, headers=HEADERS, timeout=12)
     if r.status_code == 404:
         return "<NOT AVAILABLE>"
     r.raise_for_status()
@@ -244,6 +248,24 @@ def _get_books_for_lang(lang: str):
 # ----------------------------
 app = Flask(__name__, static_folder=BASE_DIR, static_url_path='')
 
+# cache static files in browser for 1 day
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 86400
+
+@app.get("/healthz")
+def healthz():
+    return {"ok": True}
+
+# global requests session with retry
+_session = requests.Session()
+_retry = Retry(
+    total=3,
+    backoff_factor=0.5,
+    status_forcelist=[429, 500, 502, 503, 504],
+    allowed_methods=["GET", "HEAD"]
+)
+_session.mount("https://", HTTPAdapter(max_retries=_retry))
+_session.mount("http://", HTTPAdapter(max_retries=_retry))
+
 # Proxy target for chapter text
 BASE_URL = "https://www.churchofjesuschrist.org/study/scriptures/bofm/{}/{}?lang={}"
 
@@ -277,7 +299,7 @@ def api_chapter():
     url = BASE_URL.format(book, chapter, lang)
     headers = {'User-Agent': 'Mozilla/5.0'}
     try:
-        resp = requests.get(url, headers=headers, timeout=30)
+        resp = _session.get(url, headers=headers, timeout=30)
         resp.raise_for_status()
     except requests.RequestException as e:
         return jsonify({"error": f"Upstream fetch failed: {e}"}), 502
