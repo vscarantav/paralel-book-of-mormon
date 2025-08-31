@@ -37,22 +37,21 @@ async function renderBooksPage() {
   const main = params().get("main") || "por";
   const second = params().get("second") || "fra";
 
-  // Fetch localized book names
+  // Fetch localized book names (silent fallback to slugs)
   let localized = {};
   try {
     const resp = await fetch(`/api/books?lang=${encodeURIComponent(main)}`, { cache: "no-store" });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    if (data && Array.isArray(data.books)) {
-      for (const b of data.books) {
-        if (b && b.abbr) localized[b.abbr] = (b.name || "").trim();
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data && Array.isArray(data.books)) {
+        for (const b of data.books) {
+          if (b && b.abbr) localized[b.abbr] = (b.name || "").trim();
+        }
       }
     }
-  } catch (e) {
-    console.warn("Falling back to slug names; /api/books failed:", e);
-  }
+  } catch (_) { /* silent fallback */ }
 
-  // Chapter label from booksnames.json
+  // Chapter label from booksnames.json (silent fallback to "Chapter")
   let chapterWord = "Chapter";
   try {
     const res = await fetch("/booksnames.json", { cache: "no-store" });
@@ -64,9 +63,7 @@ async function renderBooksPage() {
         /[\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/.test(ch || "");
       if (ch && looksLikeWord) chapterWord = ch;
     }
-  } catch (e) {
-    console.warn("Could not load booksnames.json for chapter label:", e);
-  }
+  } catch (_) { /* silent fallback */ }
 
   const isCJK = /[\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/.test(chapterWord);
   const makeChapterLabel = (n) => (isCJK ? `${n}${chapterWord}` : `${chapterWord} ${n}`);
@@ -107,27 +104,31 @@ function escapeHtml(s = "") {
     .replaceAll("'", "&#039;");
 }
 
-function prependMetaRow(table, label, leftText, rightText) {
-  if (!leftText && !rightText) return;
-  const tr = document.createElement("tr");
-  tr.className = "meta-row";
+function prependMetaRow(container, label, leftText, rightText) {
+  if (!container) return;
 
-  const td1 = document.createElement("td");
-  td1.className = "meta-cell";
-  td1.innerHTML = leftText
-    ? `<div class="meta-text">${escapeHtml(leftText)}</div>`
-    : "";
+  const L = (leftText  ?? "").toString().trim();
+  const R = (rightText ?? "").toString().trim();
+  if (!L && !R) return;
 
-  const td2 = document.createElement("td");
-  td2.className = "meta-cell";
-  td2.innerHTML = rightText
-    ? `<div class="meta-text">${escapeHtml(rightText)}</div>`
-    : "";
+  const row = document.createElement("div");
+  row.className = "verse-row meta-row";
 
-  // append cells and insert at top
-  tr.appendChild(td1);
-  tr.appendChild(td2);
-  table.insertBefore(tr, table.firstChild);
+  const left = document.createElement("div");
+  left.className = "verse-col";
+  left.innerHTML = L
+    ? `<div class="meta-text">${escapeHtml(L)}</div>`
+    : `<div class="meta-text" style="opacity:.5">—</div>`;
+
+  const right = document.createElement("div");
+  right.className = "verse-col";
+  right.innerHTML = R
+    ? `<div class="meta-text">${escapeHtml(R)}</div>`
+    : `<div class="meta-text" style="opacity:.5">—</div>`;
+
+  row.appendChild(left);
+  row.appendChild(right);
+  container.insertBefore(row, container.firstChild);
 }
 
 // ------------------------------
@@ -141,25 +142,26 @@ async function loadChapter() {
   const p = params();
   const book = p.get("book");
   const chapter = p.get("chapter");
-  const main = p.get("main") || "por";
-  const second = p.get("second") || "fra";
+  const main = p.get("main") || "spa";
+  const second = p.get("second") || "eng";
+  const bookKey = (book || "").trim().toLowerCase();
+  const chNum = parseInt(chapter, 10) || 0;
 
-  // Localized book names for header
+  // Localized book names for header (silent fallback to slug)
   let localized = {};
   try {
     const resp = await fetch(`/api/books?lang=${encodeURIComponent(main)}`, { cache: "no-store" });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    if (data && Array.isArray(data.books)) {
-      for (const b of data.books) {
-        if (b && b.abbr) localized[b.abbr] = (b.name || "").trim();
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data && Array.isArray(data.books)) {
+        for (const b of data.books) {
+          if (b && b.abbr) localized[b.abbr] = (b.name || "").trim();
+        }
       }
     }
-  } catch (e) {
-    console.warn("Falling back to slug names; /api/books failed:", e);
-  }
+  } catch (_) { /* silent fallback */ }
 
-  // Chapter label for header (localized)
+  // Chapter label for header (localized; silent fallback)
   let chapterWord = "Chapter";
   try {
     const res = await fetch("/booksnames.json", { cache: "no-store" });
@@ -171,9 +173,7 @@ async function loadChapter() {
         /[\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/.test(ch || "");
       if (ch && looksLikeWord) chapterWord = ch;
     }
-  } catch (e) {
-    console.warn("Could not load booksnames.json for chapter label:", e);
-  }
+  } catch (_) { /* silent fallback */ }
 
   const isCJK = /[\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/.test(chapterWord);
   const makeChapterLabel = (n) => (isCJK ? `${n}${chapterWord}` : `${chapterWord} ${n}`);
@@ -185,11 +185,12 @@ async function loadChapter() {
 
   const headerEl = document.getElementById("chapter-title");
   if (headerEl) {
-    headerEl.innerHTML = `
-      <div class="book-name">${displayName}</div>
-      <div class="chapter-name">${makeChapterLabel(chapter)}</div>
-    `;
-  }
+  headerEl.innerHTML = `
+    <span class="book-name">${displayName}</span>
+    <span class="chapter-sep"> – </span>
+    <span class="chapter-name">${makeChapterLabel(chapter)}</span>
+  `;
+}
 
   // Prev/Next buttons
   const bookMeta = BOOK_META.find(b => b.abbr === book);
@@ -242,8 +243,9 @@ async function loadChapter() {
   if (colLeft) colLeft.textContent = `${main.toUpperCase()}`;
   if (colRight) colRight.textContent = `${second.toUpperCase()}`;
 
-  // Verses table
-  const table = document.getElementById("verse-table");
+  // Verses container
+  const container = document.getElementById("verse-container");
+  if (!container) { console.warn("No #verse-container found"); return; }
 
   const getVersesViaProxy = async (lang) => {
     const url = `/api/chapter?book=${encodeURIComponent(book)}&chapter=${encodeURIComponent(chapter)}&lang=${encodeURIComponent(lang)}`;
@@ -259,48 +261,58 @@ async function loadChapter() {
     [mainVerses, secondVerses] = await Promise.all([getVersesViaProxy(main), getVersesViaProxy(second)]);
   } catch (e) {
     console.error("Proxy fetch error:", e);
-    if (table) {
-      const row = document.createElement("tr");
-      const td = document.createElement("td");
-      td.colSpan = 2;
-      td.textContent = "Unable to fetch content via proxy. Make sure the Flask server is running (see README).";
-      row.appendChild(td);
-      table.appendChild(row);
+    if (container) {
+      const div = document.createElement("div");
+      div.className = "verse-row error";
+      div.textContent = "Unable to fetch content via proxy. Make sure the Flask server is running (see README).";
+      container.appendChild(div);
     }
     return;
   }
 
   // 1 Nephi 1: prepend subtitle + introduction rows
-  const chNum = parseInt(chapter, 10) || 0;
-  if (book === "1-ne" && chNum === 1) {
+  if (bookKey === "1-ne" && chNum === 1) {
     try {
       const [mainExtras, secondExtras] = await Promise.all([
-        fetch(`/api/intro?book=${encodeURIComponent(book)}&chapter=${chNum}&lang=${encodeURIComponent(main)}`,   { cache: "no-store" })
+        fetch(`/api/intro?book=${encodeURIComponent(bookKey)}&chapter=${chNum}&lang=${encodeURIComponent(main)}`,   { cache: "no-store" })
           .then(r => (r.ok ? r.json() : { subtitle: "", introduction: "" })),
-        fetch(`/api/intro?book=${encodeURIComponent(book)}&chapter=${chNum}&lang=${encodeURIComponent(second)}`, { cache: "no-store" })
+        fetch(`/api/intro?book=${encodeURIComponent(bookKey)}&chapter=${chNum}&lang=${encodeURIComponent(second)}`, { cache: "no-store" })
           .then(r => (r.ok ? r.json() : { subtitle: "", introduction: "" })),
       ]);
-      if (table) {
-        // Show chapter Introduction first, then the long book subtitle
-        prependMetaRow(table, "Introduction",  mainExtras.introduction,  secondExtras.introduction);
-        prependMetaRow(table, "Book subtitle", mainExtras.subtitle,       secondExtras.subtitle);
-      }
-    } catch (e) {
-      console.warn("Failed to load 1 Nephi 1 extras:", e);
-    }
+
+      prependMetaRow(
+        container,
+        "Introduction",
+        (mainExtras.introduction ?? "").toString(),
+        (secondExtras.introduction ?? "").toString()
+      );
+      prependMetaRow(
+        container,
+        "Book subtitle",
+        (mainExtras.subtitle ?? "").toString(),
+        (secondExtras.subtitle ?? "").toString()
+      );
+    } catch (_) { /* silent: meta rows are optional */ }
   }
 
   // Render verses
   const maxLen = Math.max(mainVerses.length, secondVerses.length);
   for (let i = 0; i < maxLen; i++) {
-    const row = document.createElement("tr");
-    const td1 = document.createElement("td");
-    td1.textContent = mainVerses[i] || "";
-    const td2 = document.createElement("td");
-    td2.textContent = secondVerses[i] || "";
-    row.appendChild(td1);
-    row.appendChild(td2);
-    if (table) table.appendChild(row);
+    const row = document.createElement("div");
+    row.className = "verse-row";
+
+    const col1 = document.createElement("div");
+    col1.className = "verse-col";
+    col1.textContent = mainVerses[i] || "";
+
+    const col2 = document.createElement("div");
+    col2.className = "verse-col";
+    col2.textContent = secondVerses[i] || "";
+
+    row.appendChild(col1);
+    row.appendChild(col2);
+
+    container.appendChild(row);
   }
 }
 

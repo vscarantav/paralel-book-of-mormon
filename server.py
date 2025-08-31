@@ -1,7 +1,7 @@
 # server.py
 from flask import Flask, request, jsonify, send_from_directory
 from bs4 import BeautifulSoup
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urljoin
 import requests
 import os
 import re
@@ -73,68 +73,61 @@ def _strip_trailing_chapter(text: str) -> str:
         parts = parts[:-1]
     return " ".join(parts)
 
+from urllib.parse import urlencode, urljoin
+
+from urllib.parse import urljoin
+
 def fetch_1ne1_extras(lang: str) -> dict:
-    """
-    Returns {'subtitle': str, 'introduction': str} for 1 Nephi 1 in the given lang.
-    We parse the reader iframe's srcdoc and pull:
-      - <p class="subtitle">…</p>
-      - <p class="intro">…</p>
-    Fallback: paragraphs before the first <p.verse>.
-    """
     base_url = "https://www.churchofjesuschrist.org/study/scriptures/bofm/1-ne/1"
-    url = f"{base_url}?{urlencode({'lang': lang})}"
-    headers = {"User-Agent": "Mozilla/5.0 (compatible; 1ne1-extractor/1.0)"}
+    page_url = f"{base_url}?{urlencode({'lang': lang})}"
 
-    r = _session.get(url, headers=headers, timeout=20)
+    r = _session.get(page_url, headers={"User-Agent": "Mozilla/5.0 (compatible; 1ne1-extractor/1.0)"}, timeout=20)
     r.raise_for_status()
-
-    # Parse from BYTES to avoid misguessed encodings
     outer = BeautifulSoup(r.content, "html.parser")
 
-    # Prefer the content inside the reader iframe (<iframe class="body" srcdoc="...">)
-    doc_soup = None
-    iframe = outer.select_one('iframe.body[srcdoc]')
+    # --- choose the real document to parse ---
+    doc_soup = outer
+
+    # a) srcdoc path (some locales still use it)
+    iframe = outer.select_one('iframe[srcdoc]')
     if iframe and iframe.has_attr("srcdoc"):
         doc_soup = BeautifulSoup(iframe["srcdoc"], "html.parser")
     else:
-        # Fallback: some locales/templates inline without srcdoc
-        doc_soup = outer
+        # b) explicit scripture iframe[src]; avoid login/silent and similar
+        # Prefer the iframe that lives under the content section
+        iframe = (
+            outer.select_one('section#content iframe[src*="/study/scriptures/"]')
+            or outer.select_one('iframe[src*="/study/scriptures/"]')
+        )
 
-    # Primary selectors
-    subtitle_el = doc_soup.select_one("p.subtitle")
-    intro_el    = doc_soup.select_one("p.intro")
+        # Fallback: pick the first iframe[src] that does NOT contain "login" or "silent"
+        if not iframe:
+            for cand in outer.select('iframe[src]'):
+                src = cand.get("src", "")
+                if "login" in src or "silent" in src:
+                    continue
+                iframe = cand
+                break
+
+        if iframe and iframe.has_attr("src"):
+            iframe_url = urljoin(page_url, iframe["src"])
+            ri = _session.get(iframe_url, headers={"User-Agent": "Mozilla/5.0 (compatible; 1ne1-extractor/1.0)"}, timeout=20)
+            ri.raise_for_status()
+            doc_soup = BeautifulSoup(ri.content, "html.parser")
+
+    # --- robust selectors for the two blocks ---
+    subtitle_el = doc_soup.select_one('p.subtitle, [id^="subtitle"], [data-aid^="subtitle"]')
+    intro_el    = doc_soup.select_one('p.intro, [id^="intro"], [data-aid^="intro"]')
 
     subtitle = _clean_spaces(" ".join(subtitle_el.stripped_strings)) if subtitle_el else ""
     introduction = _clean_spaces(" ".join(intro_el.stripped_strings)) if intro_el else ""
 
-    # De-mojibake if needed
     subtitle = _demojibake(subtitle)
     introduction = _demojibake(introduction)
-
-    if subtitle or introduction:
-        return {"subtitle": subtitle, "introduction": introduction}
-
-    # Fallback: everything before the first verse <p.verse>
-    first_verse = doc_soup.select_one("p.verse")
-    if not first_verse:
-        return {"subtitle": "", "introduction": ""}
-
-    pre_verse_paras = []
-    for p in doc_soup.find_all("p"):
-        if p is first_verse:
-            break
-        text = _clean_spaces(" ".join(p.stripped_strings))
-        text = _demojibake(text)
-        if text:
-            pre_verse_paras.append(text)
-
-    if not pre_verse_paras:
-        return {"subtitle": "", "introduction": ""}
-
-    introduction = pre_verse_paras[-1]
-    subtitle = " ".join(pre_verse_paras[:-1]).strip()
-
+    app.logger.info(f"/api/intro {lang}: subtitle='{subtitle[:60]}' intro_len={len(introduction)}")
     return {"subtitle": subtitle, "introduction": introduction}
+
+
 
 # Common localized words meaning "Chapter" for leading "Chapter 1 " sequences.
 CHAPTER_WORDS = [
@@ -350,5 +343,5 @@ def api_intro():
 
 if __name__ == '__main__':
     # Render/Heroku/etc. set PORT in the environment
-    port = int(os.getenv("PORT", "5000"))
+    port = int(os.getenv("PORT", "5050"))
     app.run(host='0.0.0.0', port=port, debug=False)
