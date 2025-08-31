@@ -1,0 +1,206 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville&display=swap');
+
+:root {
+  --page-width: 980px;   /* adjust to match your screenshot */
+}
+
+.page {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 0 28px;       /* inner gutters */
+}
+
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 16px;
+  background: #fdfdfd;
+  color: #111;
+}
+h1 { text-align: center; margin: 12px 0 16px; }
+.topbar { display:flex; align-items:center; gap:12px; justify-content:center; position:sticky; top:0; background:#fdfdfd; padding:8px 0; border-bottom:1px solid #eee; }
+.topbar .back { position:absolute; left:12px; text-decoration:none; }
+.lang-form {
+  display: flex;
+  flex-direction: row; /* side by side instead of column */
+  gap: 1rem;           /* space between dropdowns */
+  align-items: flex-start;
+  justify-content: center; /* center in the page */
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.lang-form label {
+  display: flex;
+  flex-direction: column; /* keep label text above the select */
+  gap: 6px;
+  font-weight: bold;
+}
+.lang-form button { padding:8px 14px; cursor:pointer; }
+.book-list h2 { margin: 16px 0 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+.book-list ul { list-style:none; padding-left:0; display:flex; flex-wrap:wrap; gap:8px 16px; }
+.book-list li a { text-decoration:none; border:1px solid #ccc; padding:6px 10px; border-radius:8px; }
+
+
+
+.controls { display:flex; align-items:center; justify-content:space-between; gap:12px; max-width:100%; margin: 0 auto 8px; }
+.controls .langs { display:flex; gap:8px; }
+.badge { border:1px solid #ccc; padding:4px 8px; border-radius:999px; font-size:12px; }
+.columns { font-size: 12px; color:#555; display:flex; gap:12px; }
+@media (max-width: 800px) {
+  td { display:block; width:100%; }
+  tr { display:block; margin-bottom: 10px; }
+  table { border:0; }
+}
+
+#verse-table {
+  border-collapse: separate;   /* prevents odd baseline alignment */
+  border-spacing: 0;
+  width: 100%;
+  margin: 0 auto;              /* center within .page */
+  table-layout: fixed;         /* equal column widths */
+}
+
+/* Navigation buttons base */
+.prev-button, .next-button {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  z-index: 1000;
+  transition: all 0.4s ease;
+}
+
+
+
+/* Parent wrappers for each side */
+.side-nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 50%;        /* hover target spans middle half of screen */
+  width: 120px;       /* wide enough to include the revealed button */
+  z-index: 999;
+}
+.side-nav.left  { left: 0; }
+.side-nav.right { right: 0; }
+
+/* Invisible “hot zone” area inside each side (near the edge) */
+.side-nav .edge-zone {
+  position: absolute;
+  top: 25%;
+  height: 50%;        /* center vertically */
+  width: 72px;        /* comfy hover width */
+  left: 0;            /* for right side we’ll still place the button on the other end */
+  right: auto;
+}
+
+/* Buttons: off-screen & transparent by default */
+.prev-button, .next-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);          /* base Y centering */
+  background: #fff;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  z-index: 1000;
+  opacity: 0;                            /* hidden */
+  pointer-events: none;                  /* not clickable while hidden */
+  transition: transform .35s ease, opacity .2s ease;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Set final on-screen anchor positions */
+.side-nav.left  .prev-button { left: 10px;  }
+.side-nav.right .next-button { right: 10px; }
+
+/* Start fully off-screen using X translation (smooth, no reflow) */
+.side-nav.left  .prev-button { transform: translateY(-50%) translateX(-140%); }
+.side-nav.right .next-button { transform: translateY(-50%) translateX(140%);  }
+
+/* Reveal when hovering anywhere on the side (edge OR button) */
+.side-nav:hover .prev-button,
+.side-nav:hover .next-button {
+  transform: translateY(-50%) translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .prev-button, .next-button { transition: none; }
+}
+
+#verse-table td {
+  width: 50%;
+  vertical-align: top;
+  padding: 10px 12px 8px;
+  line-height: 1.5;
+  font-family: 'Libre Baskerville', Georgia, 'Times New Roman', serif;
+  font-size: 16px;
+  text-align: justify;
+  text-justify: inter-word;
+  border: none;
+}
+
+/* Remove any extra top padding on the very first row */
+#verse-table tr:first-child td {
+  padding-top: 0;
+}
+
+/* Add vertical divider line between columns */
+#verse-table td + td {
+  border-left: 1px solid #ccc;   /* thin vertical line */
+  padding-left: 16px;            /* space after the line */
+}
+
+/* Optional: add some space before the line on the left column */
+#verse-table td:first-child {
+  padding-right: 16px;
+}
+
+/* Scripture display heading */
+#chapter-title {
+  font-family: "Merriweather", Georgia, serif;
+  font-weight: 400;         /* not bold */
+  line-height: 1.3;
+  text-align: center;
+  margin: 0.5rem 0 1rem;
+}
+
+#chapter-title .book-name {
+  font-size: clamp(1.6rem, 2.5vw + 0.5rem, 2.3rem);
+  font-variant: normal;     /* normal case */
+  text-transform: capitalize; /* only first letter uppercase */
+}
+
+#chapter-title .chapter-name {
+  font-size: clamp(1.3rem, 2vw + 0.3rem, 1.9rem);
+  font-variant: normal;
+  text-transform: capitalize;
+  margin-top: 0.25rem;
+}
+
+/* Intro/subtitle rows shown above verse 1 (only on 1 Nephi 1) */
+
+.meta-label {
+  font-variant: small-caps;
+  letter-spacing: 0.02em;
+  opacity: 0.75;
+  margin-bottom: 0.25rem;
+}
+.meta-text {
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
