@@ -68,28 +68,68 @@ async function renderBooksPage() {
   const isCJK = /[\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/.test(chapterWord);
   const makeChapterLabel = (n) => (isCJK ? `${n}${chapterWord}` : `${chapterWord} ${n}`);
 
-  // Render list
+  // ---------- helpers ----------
+  const mkEl = (tag, cls, text) => {
+    const el = document.createElement(tag);
+    if (cls) el.className = cls;
+    if (text != null) el.textContent = text;
+    return el;
+  };
+
+  const makeAccordionItem = (titleText) => {
+    const item = mkEl("div", "acc-item");
+    const btn = mkEl("button", "acc-button");
+    const title = mkEl("span", "acc-title", titleText);
+    const chev = mkEl("span", "acc-chevron");
+    btn.appendChild(title);
+    btn.appendChild(chev);
+    const panel = mkEl("div", "acc-panel");
+    btn.addEventListener("click", () => {
+      item.classList.toggle("open");
+    });
+    item.appendChild(btn);
+    item.appendChild(panel);
+    return { item, panel, btn };
+  };
+
+  // ---------- render root accordion ----------
+  container.innerHTML = "";
+  const acc = mkEl("div", "accordion");
+  container.appendChild(acc);
+
+  // Top-level "Book of Mormon" dropdown
+  const root = makeAccordionItem("Book of Mormon");
+  acc.appendChild(root.item);
+
+  // Inside it, render each book as its own dropdown (title → chapters)
+  const booksWrap = mkEl("div", "books-wrap");
+  root.panel.appendChild(booksWrap);
+
   for (const meta of BOOK_META) {
     const displayName =
       localized[meta.abbr] && !localized[meta.abbr].startsWith("<")
         ? localized[meta.abbr]
         : meta.abbr.toUpperCase();
 
-    const bookHeader = document.createElement("h2");
-    bookHeader.textContent = displayName;
-    container.appendChild(bookHeader);
+    const book = makeAccordionItem(displayName);
+    booksWrap.appendChild(book.item);
 
-    const ul = document.createElement("ul");
+    // chapters list for this book
+    const ul = mkEl("ul", "chapter-list");
     for (let i = 1; i <= meta.chapters; i++) {
       const li = document.createElement("li");
-      const link = document.createElement("a");
-      link.href = `chapter.html?book=${meta.abbr}&chapter=${i}&main=${main}&second=${second}`;
-      link.textContent = makeChapterLabel(i);
-      li.appendChild(link);
+      const a = document.createElement("a");
+      a.href = `chapter.html?book=${meta.abbr}&chapter=${i}&main=${encodeURIComponent(main)}&second=${encodeURIComponent(second)}`;
+      a.textContent = makeChapterLabel(i);
+      li.appendChild(a);
       ul.appendChild(li);
     }
-    container.appendChild(ul);
+    book.panel.appendChild(ul);
   }
+
+  // Optional: start with everything collapsed (matches your sketch).
+  // If you want the top "Book of Mormon" open by default, uncomment:
+  // root.item.classList.add("open");
 }
 
 // ------------------------------

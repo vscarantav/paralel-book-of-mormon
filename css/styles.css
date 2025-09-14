@@ -283,3 +283,86 @@ h1 { text-align: center; margin: 12px 0 16px; }
   border-bottom: none !important;
   box-shadow: none !important;
 }
+
+/* Accordion for books.html */
+.accordion {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.acc-item {
+  border: 1px solid var(--border, #ddd);
+  border-radius: 12px;
+  margin: 10px 0;
+  overflow: hidden;
+  background: var(--surface, #fff);
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+
+.acc-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.acc-button:hover {
+  background: rgba(0,0,0,.03);
+}
+
+.acc-chevron::before {
+  content: "▾"; /* simple caret; no external icon dependency */
+  display: inline-block;
+  transition: transform .18s ease;
+}
+
+.acc-item.open .acc-chevron::before {
+  transform: rotate(180deg);
+}
+
+.acc-panel {
+  display: none;
+  padding: 8px 14px 14px;
+}
+
+.acc-item.open > .acc-panel {
+  display: block;
+}
+
+/* inner list of books */
+.books-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* chapters list */
+.chapter-list {
+  list-style: none;
+  margin: 6px 0 4px;
+  padding: 0 6px;
+  columns: 2;              /* compact look; drop if you prefer one column */
+  column-gap: 24px;
+}
+
+.chapter-list li {
+  break-inside: avoid;
+  margin: 4px 0;
+}
+
+.chapter-list a {
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.chapter-list a:hover {
+  text-decoration: underline;
+}
