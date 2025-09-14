@@ -386,3 +386,57 @@ h1:not(#chapter-title) { text-align: center; margin: 12px 0 16px; }
 .chapter-list a:hover {
   text-decoration: underline;
 }
+/* ---------- View toggle ---------- */
+.view-toggle { display:flex; gap:8px; align-items:center; }
+.vt-btn {
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid #bfc6b6;
+  background: #FCFCFC;
+  color: #312706;
+  cursor: pointer;
+}
+.vt-btn.is-active {
+  background: #879375;
+  color: #FFFFFF;
+  border-color: #879375;
+}
+
+/* ---------- Single-view layout ---------- */
+body.single-view #verse-container { gap: 8px; }
+body.single-view #verse-container::before { display: none; } /* hide divider */
+body.single-view .verse-row { display: none; }                /* hide parallel rows */
+
+/* Verse item for single-view */
+.verse-item {
+  border-radius: 10px;
+  background: transparent;
+  padding: 10px 12px;
+  transition: background-color .15s ease;
+  cursor: pointer;
+}
+.verse-item:hover { background: rgba(0,0,0,0.035); }
+
+.verse-item .v-main {
+  font-family: "Libre Baskerville", Georgia, serif;
+  font-size: 18px;
+  line-height: 1.6;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+/* Hidden translation block */
+.verse-item .v-second {
+  display: none;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #FFFFFF; /* pure white background */
+  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.04);
+}
+
+/* Expanded state */
+.verse-item.open .v-second { display: block; }
+.verse-item[aria-expanded="true"] { background: rgba(0,0,0,0.02); }

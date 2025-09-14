@@ -361,3 +361,80 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("book-list")) renderBooksPage();
   loadChapter();
 });
+
+/* --- Single vs Parallel view toggle --- */
+(function () {
+  const container = document.getElementById('verse-container');
+  const btnParallel = document.getElementById('view-parallel');
+  const btnSingle = document.getElementById('view-single');
+  if (!container || !btnParallel || !btnSingle) return;
+
+  let parallelHTML = null; // cache original rows
+
+  function setActive(btn) {
+    [btnParallel, btnSingle].forEach(b => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+  }
+
+  function enterSingleView() {
+    if (!parallelHTML) parallelHTML = container.innerHTML;
+
+    const rows = Array.from(container.querySelectorAll('.verse-row'));
+    const items = rows.map((row, idx) => {
+      const left = row.querySelector('.verse-col:nth-child(1)');
+      const right = row.querySelector('.verse-col:nth-child(2)');
+
+      const wrap = document.createElement('div');
+      wrap.className = 'verse-item';
+      wrap.setAttribute('role', 'button');
+      wrap.setAttribute('tabindex', '0');
+      wrap.setAttribute('aria-expanded', 'false');
+      wrap.dataset.verseIndex = String(idx + 1);
+
+      const vMain = document.createElement('div');
+      vMain.className = 'v-main';
+      vMain.innerHTML = left ? left.innerHTML : '';
+
+      const vSecond = document.createElement('div');
+      vSecond.className = 'v-second';
+      vSecond.innerHTML = right ? right.innerHTML : '';
+
+      wrap.appendChild(vMain);
+      wrap.appendChild(vSecond);
+      return wrap;
+    });
+
+    container.innerHTML = '';
+    items.forEach(n => container.appendChild(n));
+
+    document.body.classList.add('single-view');
+    setActive(btnSingle);
+  }
+
+  function enterParallelView() {
+    if (parallelHTML != null) container.innerHTML = parallelHTML;
+    document.body.classList.remove('single-view');
+    setActive(btnParallel);
+  }
+
+  // Click + keyboard toggle for verse items
+  container.addEventListener('click', (e) => {
+    const item = e.target.closest('.verse-item');
+    if (!item) return;
+    item.classList.toggle('open');
+    item.setAttribute('aria-expanded', item.classList.contains('open') ? 'true' : 'false');
+  });
+  container.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const item = e.target.closest('.verse-item');
+      if (!item) return;
+      e.preventDefault();
+      item.classList.toggle('open');
+      item.setAttribute('aria-expanded', item.classList.contains('open') ? 'true' : 'false');
+    }
+  });
+
+  // Wire up buttons
+  btnSingle.addEventListener('click', enterSingleView);
+  btnParallel.addEventListener('click', enterParallelView);
+})();
