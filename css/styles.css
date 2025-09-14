@@ -2,7 +2,7 @@
 
 :root {
   --page-width: 980px;   /* adjust to match your screenshot */
-  --topbar-h: 40px;  /* height of your sticky top bar */
+  --topbar-h: 56px;  /* height of your sticky top bar */
 }
 
 .page {
@@ -14,17 +14,23 @@
 
 body {
   font-family: Arial, sans-serif;
-  margin: 16px;
-  background: #fdfdfd;
-  color: #111;
+  margin: 0px;
+  background: #FCFCFC;
+  color: #312706;
 }
-h1 { text-align: center; margin: 12px 0 16px; }
+h1:not(#chapter-title) { text-align: center; margin: 12px 0 16px; }
+
 .topbar {
-  display:flex; align-items:center; gap:12px; justify-content:center;
+  display:flex; align-items:center; justify-content:center;
   position: sticky; top: 0;
-  z-index: 10;              /* above the title */
-  background:#fdfdfd; padding:8px 0; border-bottom:1px solid #eee;
+  z-index: 10;
+  background: transparent; /* let #chapter-title bar show through */
+  padding: 0;              /* remove white bands */
+  border-bottom: 0;
 }
+
+
+
 .topbar .back { position:absolute; left:12px; text-decoration:none; }
 .lang-form {
   display: flex;
@@ -149,7 +155,7 @@ h1 { text-align: center; margin: 12px 0 16px; }
   font-weight: 400;         /* not bold */
   line-height: 1.3;
   text-align: center;
-  margin: 0.5rem 0 1rem;
+  margin: 0;
 }
 
 #chapter-title .book-name {
@@ -204,7 +210,7 @@ h1 { text-align: center; margin: 12px 0 16px; }
   gap: 12px;
   z-index: 1;  /* sits below the title; above the divider */
 }
-#verse-container { margin-top: 6px; }
+#verse-container { margin-top: 0px; }
 
 #verse-container::before{
   content:"";
@@ -255,12 +261,26 @@ h1 { text-align: center; margin: 12px 0 16px; }
 /* Sticky title that floats under the topbar */
 #chapter-title{
   position: sticky;
-  top: var(--topbar-h); /* sits below your .topbar */
+  top: 0;
   z-index: 9;           /* above verses */
-  background: #fdfdfd;  /* solid backdrop hides content under it */
+  background: transparent;
+  color: #FCFCFC;
+  isolation: isolate;
   margin: 0;
-  padding: 8px 0 10px;
-  box-shadow: 0 1px 0 rgba(0,0,0,.06);
+  padding: 12px 0; 
+}
+
+/* Full-bleed sticky title bar */
+#chapter-title::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -1px;
+  bottom: -1px;
+  width: 100vw;        /* spans entire viewport width */
+  background: #879375; /* title background */
+  z-index: -1;         /* behind the title text */
 }
 
 #chapter-title {
@@ -268,7 +288,7 @@ h1 { text-align: center; margin: 12px 0 16px; }
   font-weight: 400;
   line-height: 1.3;
   text-align: center;
-  margin: 0.5rem 0 1rem;
+  margin: 0;
 }
 
 #chapter-title .book-name,
