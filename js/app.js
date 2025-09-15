@@ -278,10 +278,6 @@ async function loadChapter() {
       <span class="badge">Main: ${main.toUpperCase()}</span>
       <span class="badge">Second: ${second.toUpperCase()}</span>`;
   }
-  const colLeft = document.getElementById("col-left");
-  const colRight = document.getElementById("col-right");
-  if (colLeft) colLeft.textContent = `${main.toUpperCase()}`;
-  if (colRight) colRight.textContent = `${second.toUpperCase()}`;
 
   // Verses container
   const container = document.getElementById("verse-container");
@@ -437,4 +433,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Wire up buttons
   btnSingle.addEventListener('click', enterSingleView);
   btnParallel.addEventListener('click', enterParallelView);
+  const isMobile = window.matchMedia("(max-width: 900px)").matches;
+  if (isMobile) {
+    enterSingleView();
+  } else {
+    enterParallelView();
+  }
 })();
