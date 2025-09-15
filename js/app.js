@@ -242,9 +242,9 @@ async function loadChapter() {
   const bookIndex = BOOK_META.findIndex(b => b.abbr === book);
 
   let nextBookAbbr = book;
-  let nextChapterNum = currentChapter + 1;
+  let nextChapterNum = currentChapter  1;
   if (currentChapter >= totalChapters) {
-    const nb = (bookIndex + 1) % BOOK_META.length;
+    const nb = (bookIndex  1) % BOOK_META.length;
     nextBookAbbr = BOOK_META[nb].abbr;
     nextChapterNum = 1;
   }
@@ -252,7 +252,7 @@ async function loadChapter() {
   let prevBookAbbr = book;
   let prevChapterNum = currentChapter - 1;
   if (currentChapter <= 1) {
-    const pb = (bookIndex - 1 + BOOK_META.length) % BOOK_META.length;
+    const pb = (bookIndex - 1  BOOK_META.length) % BOOK_META.length;
     prevBookAbbr = BOOK_META[pb].abbr;
     prevChapterNum = BOOK_META[pb].chapters;
   }
@@ -306,7 +306,7 @@ async function loadChapter() {
     return;
   }
 
-  // 1 Nephi 1: prepend subtitle + introduction rows
+  // 1 Nephi 1: prepend subtitle  introduction rows
   if (bookKey === "1-ne" && chNum === 1) {
     try {
       const [mainExtras, secondExtras] = await Promise.all([
@@ -385,7 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
       wrap.setAttribute('role', 'button');
       wrap.setAttribute('tabindex', '0');
       wrap.setAttribute('aria-expanded', 'false');
-      wrap.dataset.verseIndex = String(idx + 1);
+      wrap.dataset.verseIndex = String(idx  1);
 
       const vMain = document.createElement('div');
       vMain.className = 'v-main';
@@ -413,7 +413,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setActive(btnParallel);
   }
 
-  // Click + keyboard toggle for verse items
+  // Click  keyboard toggle for verse items
   container.addEventListener('click', (e) => {
     const item = e.target.closest('.verse-item');
     if (!item) return;
@@ -433,10 +433,38 @@ document.addEventListener("DOMContentLoaded", () => {
   // Wire up buttons
   btnSingle.addEventListener('click', enterSingleView);
   btnParallel.addEventListener('click', enterParallelView);
-  const isMobile = window.matchMedia("(max-width: 900px)").matches;
-  if (isMobile) {
-    enterSingleView();
-  } else {
-    enterParallelView();
+  // ----- Default view selection -----
+  // Use touch capability OR small width to decide "mobile".
+  function isMobileLike() {
+    const small = window.matchMedia("(max-width: 900px)").matches;
+    const touch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    return small || touch;
   }
+
+  // Wait until verses are rendered, then choose the default.
+  function initDefaultViewWhenReady() {
+    const haveRows = !!container.querySelector('.verse-row');
+    if (haveRows) {
+      if (isMobileLike()) {
+        enterSingleView();
+      } else {
+        enterParallelView();
+      }
+      return;
+    }
+    // Observe until verse rows arrive once, then decide.
+    const mo = new MutationObserver(() => {
+      if (container.querySelector('.verse-row')) {
+        mo.disconnect();
+        if (isMobileLike()) {
+          enterSingleView();
+        } else {
+          enterParallelView();
+        }
+      }
+    });
+    mo.observe(container, { childList: true, subtree: true });
+  }
+
+  initDefaultViewWhenReady();
 })();
