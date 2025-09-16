@@ -20,6 +20,22 @@ body {
 }
 h1:not(#chapter-title) { text-align: center; margin: 12px 0 16px; }
 
+/* Ensure text over white backgrounds in index.html & books.html uses same color */
+.lang-form label,
+.lang-form button,
+.book-list,
+.book-list a,
+.accordion,
+.acc-button,
+.acc-panel,
+.chapter-list a {
+  color: #312706;
+}
+
+.lang-form select {
+  color: #312706;
+}
+
 .topbar {
   display:flex; align-items:center; justify-content:center;
   position: sticky; top: 0;
