@@ -1,17 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Select a Book</title>
-  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Match chapter.html typography for title -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Palette accent for mobile browser UI -->
+  <meta name="theme-color" content="#879375" />
+
+  <!-- Your existing stylesheet (kept) -->
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <a class="back" href="index.html">← Change Languages</a>
-    <h1>Select a Book</h1>
-  </header>
-  <div id="book-list" class="book-list"></div>
+  <div class="page"><!-- center content like chapter.html -->
+
+    <header class="topbar">
+      <!-- keep original back target/text; CSS positions it on the left -->
+      <a class="back" href="index.html">← Change Languages</a>
+
+      <!-- Reuse chapter sticky title styles to get the olive bar + white text -->
+      <h1 id="chapter-title">
+        <span class="book-name">Select a Book</span>
+      </h1>
+    </header>
+
+    <!-- Keep the same ID for JS; add classes so it can adopt the accordion look -->
+    <div id="book-list" class="book-list accordion" role="region" aria-live="polite">
+      <!-- Populated by js/app.js -->
+    </div>
+
+  </div>
+
+  <!-- Keep script exactly as before -->
   <script src="js/app.js"></script>
 </body>
 </html>
