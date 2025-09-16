@@ -447,10 +447,32 @@ body.single-view .verse-row { display: none; }                /* hide parallel r
 .verse-item.open .v-second { display: block; }
 .verse-item[aria-expanded="true"] { background: rgba(0,0,0,0.02); }
 
-/* Extra spacing below the green title bar on index.html */
+/* Language selection page layout */
 .lang-form {
+  display: flex;            /* stack row + button */
+  flex-direction: column;
+  align-items: center;      /* center the whole form */
+  gap: 1.5rem;              /* space between the selects row and the button */
+  margin-top: 2rem;         /* space below the green title bar */
+}
+
+/* row that holds the two selects side-by-side, centered */
+.lang-row {
   display: flex;
-  flex-wrap: wrap;   /* keeps labels + selects aligned nicely */
-  gap: 1rem;         /* spacing between inputs */
-  margin-top: 2rem;  /* pushes form down from the header */
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2rem;                /* space between the two label+select groups */
+}
+
+/* make each label render its text above the select, centered */
+.lang-form label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: bold;
+}
+
+/* optional: on small screens, stack the selects vertically */
+@media (max-width: 640px) {
+  .lang-row { flex-direction: column; }
 }

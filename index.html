@@ -85,13 +85,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     <!-- kept action/GET + IDs exactly the same -->
     <form action="books.html" method="GET" class="lang-form">
-      <label>Language You Are Learning:
-        <select id="main-select" name="main"></select>
-      </label>
-
-      <label>Your Native Language:
-        <select id="second-select" name="second"></select>
-      </label>
+      <div class="lang-row">
+        <label>Language You Are Learning:
+          <select id="main-select" name="main"></select>
+        </label>
+    
+        <label>Your Native Language:
+          <select id="second-select" name="second"></select>
+        </label>
+      </div>
 
       <button type="submit">Continue</button>
     </form>
