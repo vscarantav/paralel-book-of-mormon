@@ -517,3 +517,104 @@ body.single-view .verse-row { display: none; }                /* hide parallel r
 .back-button:focus {
   opacity: 0.8;
 }
+
+
+/* === THEME VARIABLES (Appended) ========================================= */
+:root {
+  /* Light theme (default) */
+  --bg: #FCFCFC;
+  --fg: #312706;
+  --banner: #879375;      /* light banner */
+  --surface: #FFFFFF;
+  --border: #dddddd;
+  --muted: rgba(0,0,0,0.04);
+  --btn-border: #bfc6b6;
+
+  --btn-bg: #FCFCFC;
+  --btn-fg: #312706;
+  --btn-active-bg: #879375;
+  --btn-active-fg: #FFFFFF;
+  --divider: #d6d6d6;
+}
+:root.theme-dark {
+  --bg: #000000;          /* pure black background */
+  --fg: #FCFCFC;          /* text */
+  --banner: #312706;      /* requested dark banner */
+  --surface: #0f0f0f;
+  --border: #333333;
+  --muted: rgba(255,255,255,0.06);
+
+  --btn-bg: #111111;
+  --btn-fg: #FCFCFC;
+  --btn-active-bg: #4a461e;
+  --btn-active-fg: #FCFCFC;
+  --divider: #3a3a3a;
+}
+
+/* Base colors driven by variables */
+body { background: var(--bg); color: var(--fg); }
+.lang-form label, .lang-form button, .book-list, .book-list a, .accordion, .acc-button, .chapter-list a { color: var(--fg); }
+.lang-form select { color: var(--fg); }
+#verse-container::before { background: var(--divider); }
+.verse-col { color: var(--fg); }
+
+/* Panels/cards adopt themed surface */
+.acc-item { border:1px solid var(--border); background: var(--surface); box-shadow: 0 1px 2px var(--muted); }
+.verse-item .v-second { background: var(--surface); box-shadow: 0 1px 2px var(--muted), 0 0 0 1px var(--muted); color: var(--fg); }
+.verse-item:hover { background: var(--muted); }
+
+/* Banner uses var(--banner); text over it stays #FCFCFC */
+#chapter-title { color: #FCFCFC; }
+#chapter-title::before { background: var(--banner) !important; }
+
+/* Controls row: view toggle left, theme toggle right */
+.controls { justify-content: space-between !important; }
+.controls:has(.theme-toggle):not(:has(.view-toggle)) { justify-content: flex-end !important; }
+
+/* View toggle buttons (IDs exist in chapter.html) */
+.vt-btn {
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  cursor: pointer;
+}
+.vt-btn.is-active {
+  background: var(--btn-active-bg);
+  color: var(--btn-active-fg);
+  border-color: var(--btn-active-bg);
+}
+
+/* Primary buttons adopt theme */
+.lang-form button {
+  background: var(--btn-active-bg);
+  color: var(--btn-active-fg);
+  border: 1px solid var(--btn-active-bg);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Nav buttons surface */
+.prev-button, .next-button { background: var(--surface); box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+
+/* === THEME TOGGLE ======================================================== */
+.theme-toggle { display:inline-flex; align-items:center; gap:8px; }
+.theme-toggle button {
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.theme-toggle button[aria-pressed="true"] {
+  background: var(--btn-active-bg);
+  color: var(--btn-active-fg);
+  border-color: var(--btn-active-bg);
+}
