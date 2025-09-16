@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- keep your existing font; add Merriweather so #chapter-title matches chapter.html -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Select Languages</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
+<!-- unchanged: loads languages into #main-select and #second-select -->
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
-  // Ensure these IDs exist in your HTML:
-  // <select id="main-select" name="main"></select>
-  // <select id="second-select" name="second"></select>
   const mainSel   = document.getElementById('main-select');
   const secondSel = document.getElementById('second-select');
 
@@ -26,19 +27,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const resp = await fetch('/languages.json', { cache: 'no-store' });
     if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
     const langs = await resp.json();
-
     if (!Array.isArray(langs)) throw new Error('languages.json is not an array');
 
-    // Sort by display name
     langs.sort((a, b) => {
       const nameA = (a.name || a['language name'] || '').toString();
       const nameB = (b.name || b['language name'] || '').toString();
       return nameA.localeCompare(nameB);
     });
 
-    // Helper to create an <option>
     function makeOption(entry) {
-      // Support either { code, name } or { code, "language name" }
       const code = entry.code;
       const label = entry.name ?? entry['language name'];
       if (!code || !label) return null;
@@ -48,7 +45,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       return opt;
     }
 
-    // Placeholder for the first select (required)
     mainSel.innerHTML = '';
     const placeholder = document.createElement('option');
     placeholder.value = '';
@@ -58,7 +54,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     mainSel.appendChild(placeholder);
     mainSel.required = true;
 
-    // Clear and populate both selects
     secondSel.innerHTML = '';
 
     let added = 0;
@@ -70,15 +65,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (o1 && o2) added++;
     }
 
-    console.log(`Loaded ${langs.length} entries; appended ${added} options.`);
-
-    // Optional: default the native language to English if present
     const hasEng = Array.from(secondSel.options).some(o => o.value === 'eng');
     if (hasEng) secondSel.value = 'eng';
 
   } catch (err) {
     console.error('Failed to load languages.json:', err);
-    // Graceful fallback
     mainSel.innerHTML = '<option>Unable to load languages</option>';
     secondSel.innerHTML = '<option>Unable to load languages</option>';
   }
@@ -86,16 +77,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 
 <body>
-  <h1>Select Languages to Read the Book of Mormon</h1>
-  <form action="books.html" method="GET" class="lang-form">
-<label>Language You Are Learning:
-  <select id="main-select" name="main"></select>
-</label>
+  <div class="page"><!-- align with chapter.html layout -->
+    <header class="topbar">
+      <!-- single title in palette bar; removed the extra H1 below -->
+      <h1 id="chapter-title">Select Languages</h1>
+    </header>
 
-<label>Your Native Language:
-  <select id="second-select" name="second"></select>
-</label>
-    <button type="submit">Continue</button>
-  </form>
+    <!-- kept action/GET + IDs exactly the same -->
+    <form action="books.html" method="GET" class="lang-form">
+      <label>Language You Are Learning:
+        <select id="main-select" name="main"></select>
+      </label>
+
+      <label>Your Native Language:
+        <select id="second-select" name="second"></select>
+      </label>
+
+      <button type="submit">Continue</button>
+    </form>
+  </div>
 </body>
 </html>

@@ -446,3 +446,11 @@ body.single-view .verse-row { display: none; }                /* hide parallel r
 /* Expanded state */
 .verse-item.open .v-second { display: block; }
 .verse-item[aria-expanded="true"] { background: rgba(0,0,0,0.02); }
+
+/* Extra spacing below the green title bar on index.html */
+.lang-form {
+  display: flex;
+  flex-wrap: wrap;   /* keeps labels + selects aligned nicely */
+  gap: 1rem;         /* spacing between inputs */
+  margin-top: 2rem;  /* pushes form down from the header */
+}
