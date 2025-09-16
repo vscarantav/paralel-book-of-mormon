@@ -618,3 +618,10 @@ body { background: var(--bg); color: var(--fg); }
   color: var(--btn-active-fg);
   border-color: var(--btn-active-bg);
 }
+
+/* Force selects and their option lists to always be readable */
+.lang-form select,
+.lang-form select option {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
