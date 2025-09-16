@@ -66,9 +66,15 @@ h1:not(#chapter-title) { text-align: center; margin: 12px 0 16px; }
 .book-list ul { list-style:none; padding-left:0; display:flex; flex-wrap:wrap; gap:8px 16px; }
 .book-list li a { text-decoration:none; border:1px solid #ccc; padding:6px 10px; border-radius:8px; }
 
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* move buttons to the right */
+  gap: 12px;
+  max-width: 100%;
+  margin: 12px 0 8px;        /* add space so they don't merge with the green bar */
+}
 
-
-.controls { display:flex; align-items:center; justify-content:space-between; gap:12px; max-width:100%; margin: 0 auto 8px; }
 .controls .langs { display:flex; gap:8px; }
 .badge { border:1px solid #ccc; padding:4px 8px; border-radius:999px; font-size:12px; }
 @media (max-width: 800px) {
